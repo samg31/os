@@ -4,6 +4,7 @@ void readString(char*);
 void clearScreen(int bx, int cx);
 void writeInt(int);
 void readInt(int*);
+int pow( int b, int e );
 
 void main()
 {
@@ -28,10 +29,11 @@ void main()
     printString("\r\nYou typed: \0");
     printString(line);
     printString("\r\n\0");
-    /* x = 5; */
-    /* printString("Your number is \0"); */
-    /* writeInt(x); */
-    /* printString("\r\n\0"); */
+    printString("\rEnter a number: \0");
+    readInt(&x);
+    printString("\nYour number is \0");
+    writeInt(x);
+    printString("\r\n\0");
     while(1);
 }
 
@@ -60,11 +62,14 @@ void readString(char* c)
 	current = interrupt( 22, 0, 0, 0, 0 );
 	interrupt( 16, 14*256+current, 0, 0, 0 );
 	*(c + i) = current;
-	
+
 	/* if BACKSPACE is pressed */
 	if( current == 0x8 )
 	    if( i > 0 )
+	    {
 		--i;
+	    }
+
 	++i;
     }while( current != 0xD ); /*continue until ENTER is pressed */
     *(c + (i - 1)) = '\0';
@@ -126,8 +131,33 @@ void writeInt(int x)
 
 void readInt(int* number)
 {
-    /* Fill this in as well. */
-    return;
+    char* input, iterator;
+    int i, digit, sum, len;
+
+    readString( input );
+    for( len = 0; *(input + len) != '\0'; ++len );
+
+    sum = i = 0;
+    
+    while( *(input + i) != '\0' )
+    {
+	digit = *(input + i) - 48;
+	sum += digit*pow( 10, len-i );
+	++i;
+    }
+    *number = sum;
 }
 
+int pow( int b, int e )
+{
+    int result = 1;
+    while (exp)
+    {
+        if (exp & 1)
+            result *= base;
+        exp >>= 1;
+        base *= base;
+    }
 
+    return result;
+}
