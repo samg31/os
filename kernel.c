@@ -1,7 +1,7 @@
 ﻿void main();
 void printString(char*);
 void readString(char*);
-void clearScreen(char*);
+void clearScreen(int bx, int cx);
 void writeInt(int);
 void readInt(int*);
 
@@ -11,7 +11,7 @@ void main()
     int x;
    
     /* makeInterrupt21(); */
-    clearScreen(0,0);
+    clearScreen(2,12);
 
     printString("___.   .__                 __       .___           \r\n\0");
     printString("\\_ |__ |  | _____    ____ |  | __ __| _/___  ______\r\n\0");
@@ -20,7 +20,7 @@ void main()
     printString(" |___  /____(____  /\\___  >__|_ \\____ |\\___/____  >\r\n\0");
     printString("     \\/          \\/     \\/     \\/    \\/         \\/ \r\n\0");
     printString(" V. 1.03, C. 2017. Based on a project by M. Black. \r\n\0");
-    printString(" Author(s): your name(s) here.\r\n\r\n\0");
+    printString(" Author(s): Sam Goodrick.\r\n\r\n\0");
    
     printString("Hola mondo.\r\n\0");
     printString("Enter a line: \0");
@@ -67,15 +67,25 @@ void readString(char* c)
 		--i;
 	++i;
     }while( current != 0xD ); /*continue until ENTER is pressed */
-    *(c + i - 1)) = '\0';
+    *(c + (i - 1)) = '\0';
 
     return;
 }
 
 void clearScreen(int bx, int cx)
 {
-    /* This too. */
+    int i;
+    for( i = 0; i < 24; ++i )
+    {
+    	printString( "\r\n\0" );
+    }
+
+    interrupt( 16, 512, 0, 0, 0 );
+
+    if( bx > 0 && cx > 0 )
+	interrupt( 16, 1536, 4096 * ( bx - 1 ) + 256 * ( cx - 1 ), 0, 6223 );
     return;
+
 }
 
 int mod(int a, int b)
