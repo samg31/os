@@ -67,7 +67,7 @@ void readString(char* c)
 	if( current == 0x8 )
 	    if( i > 0 )
 	    {
-		--i;
+		i -= 2;
 	    }
 
 	++i;
@@ -134,15 +134,19 @@ void readInt(int* number)
     char* input, iterator;
     int i, digit, sum, len;
 
+    /* read a string of digits and check it's length */
     readString( input );
     for( len = 0; *(input + len) != '\0'; ++len );
 
     sum = i = 0;
     
     while( *(input + i) != '\0' )
-    {
+    {	
+	/* subtract 48 to convert from ASCII to decimal */
 	digit = *(input + i) - 48;
-	sum += digit*pow( 10, len-i );
+
+	/* convert each digit to its appropriate decimal place */
+	sum += digit*pow( 10, len-1-i );
 	++i;
     }
     *number = sum;
@@ -151,12 +155,12 @@ void readInt(int* number)
 int pow( int b, int e )
 {
     int result = 1;
-    while (exp)
+    while (e)
     {
-        if (exp & 1)
-            result *= base;
-        exp >>= 1;
-        base *= base;
+        if (e & 1)
+            result *= b;
+        e >>= 1;
+        b *= b;
     }
 
     return result;
