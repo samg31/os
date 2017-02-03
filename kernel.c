@@ -1,39 +1,33 @@
-﻿void main();
-void printString(char*);
-void readString(char*);
-void clearScreen(int bx, int cx);
-void writeInt(int);
-void readInt(int*);
-int pow( int b, int e );
+﻿void handleInterrupt21( int ax, int bx, int cx, int dx );
 
 void main()
 {
     char line[80];
     int x;
    
-    /* makeInterrupt21(); */
-    clearScreen(2,12);
+    makeInterrupt21();
+    interrupt( 33, 12, 2, 12, 0 );
 
-    printString("___.   .__                 __       .___           \r\n\0");
-    printString("\\_ |__ |  | _____    ____ |  | __ __| _/___  ______\r\n\0");
-    printString(" | __ \\|  | \\__  \\ _/ ___\\|  |/ // __ |/ _ \\/  ___/\r\n\0");
-    printString(" | \\_\\ \\  |__/ /\\ \\\\  \\___|    </ /_/ ( <_> )___ \\ \r\n\0");
-    printString(" |___  /____(____  /\\___  >__|_ \\____ |\\___/____  >\r\n\0");
-    printString("     \\/          \\/     \\/     \\/    \\/         \\/ \r\n\0");
-    printString(" V. 1.03, C. 2017. Based on a project by M. Black. \r\n\0");
-    printString(" Author(s): Sam Goodrick.\r\n\r\n\0");
+    interrupt(33,0,"___.   .__                 __       .___           \r\n\0",0,0);
+    interrupt(33,0,"\\_ |__ |  | _____    ____ |  | __ __| _/___  ______\r\n\0",0,0);
+    interrupt(33,0," | __ \\|  | \\__  \\ _/ ___\\|  |/ // __ |/ _ \\/  ___/\r\n\0",0,0);
+    interrupt(33,0," | \\_\\ \\  |__/ /\\ \\\\  \\___|    </ /_/ ( <_> )___ \\ \r\n\0",0,0);
+    interrupt(33,0," |___  /____(____  /\\___  >__|_ \\____ |\\___/____  >\r\n\0",0,0);
+    interrupt(33,0,"     \\/          \\/     \\/     \\/    \\/         \\/ \r\n\0",0,0);
+    interrupt(33,0," V. 1.03, C. 2017. Based on a project by M. Black. \r\n\0",0,0);
+    interrupt(33,0," Author(s): Sam Goodrick.\r\n\r\n\0",0,0);
    
-    printString("Hola mondo.\r\n\0");
-    printString("Enter a line: \0");
-    readString(line);
-    printString("\r\nYou typed: \0");
-    printString(line);
-    printString("\r\n\0");
-    printString("\rEnter a number: \0");
-    readInt(&x);
-    printString("\nYour number is \0");
-    writeInt(x);
-    printString("\r\n\0");
+    interrupt(33,0,"Hola mondo.\r\n\0",0,0);
+    interrupt(33,0,"Enter a line: \0",0,0);
+    interrupt(33,1,line,0,0);
+    interrupt(33,0,"\r\nYou typed: \0",0,0);
+    interrupt(33,0,line,0,0);
+    interrupt(33,0,"\r\n\0",0,0);
+    interrupt(33,0,"\rEnter a number: \0",0,0);
+    interrupt(33,14,&x,0,0);
+    interrupt(33,0,"\nYour number is \0",0,0);
+    interrupt(33,13,x,0,0);
+    interrupt(33,0,"\r\n\0",0,0);
     while(1);
 }
 
@@ -48,15 +42,14 @@ void printString(char* c)
 	/* call interrupt 16 to print current */
 	interrupt( 16, 14*256+current, 0, 0, 0 );
 	++i;
-	}while( current != '\0' );
-    return;
+    }while( current != '\0' );
 }
 
 void readString(char* c)
 {
     int i = 0;
     char current;
-
+    
     do
     {
 	current = interrupt( 22, 0, 0, 0, 0 );
@@ -69,12 +62,9 @@ void readString(char* c)
 	    {
 		i -= 2;
 	    }
-
 	++i;
-    }while( current != 0xD ); /*continue until ENTER is pressed */
+    } while( current != 0xD ); /*continue until ENTER is pressed */
     *(c + (i - 1)) = '\0';
-
-    return;
 }
 
 void clearScreen(int bx, int cx)
@@ -82,14 +72,13 @@ void clearScreen(int bx, int cx)
     int i;
     for( i = 0; i < 24; ++i )
     {
-    	printString( "\r\n\0" );
+    	interrupt( 33,0,"\r\n\0",0,0 );
     }
 
     interrupt( 16, 512, 0, 0, 0 );
 
     if( bx > 0 && cx > 0 )
 	interrupt( 16, 1536, 4096 * ( bx - 1 ) + 256 * ( cx - 1 ), 0, 6223 );
-    return;
 
 }
 
@@ -126,16 +115,16 @@ void writeInt(int x)
 	}
 	d++;
     }
-    printString(d);
+    interrupt(33,0,d,0,0);
 }
 
 void readInt(int* number)
 {
-    char* input, iterator;
+    char* input;
     int i, digit, sum, len;
 
     /* read a string of digits and check it's length */
-    readString( input );
+    interrupt( 33,1,input,0,0 );
     for( len = 0; *(input + len) != '\0'; ++len );
 
     sum = i = 0;
@@ -150,6 +139,7 @@ void readInt(int* number)
 	++i;
     }
     *number = sum;
+
 }
 
 int pow( int b, int e )
@@ -164,4 +154,26 @@ int pow( int b, int e )
     }
 
     return result;
+}
+
+void handleInterrupt21( int ax, int bx, int cx, int dx )
+{
+    switch( ax )
+    {
+    case 0:
+	printString( bx );
+	break;
+    case 1:
+	readString( bx );
+	break;
+    case 12:
+	clearScreen( bx, cx );
+	break;
+    case 13:
+	writeInt( bx );
+	break;
+    case 14:
+	readInt( bx );
+	break;
+    }
 }
