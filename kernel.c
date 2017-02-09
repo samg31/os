@@ -1,4 +1,6 @@
-﻿void handleInterrupt21( int ax, int bx, int cx, int dx );
+﻿#define MAX_ROWS 24
+
+void handleInterrupt21( int ax, int bx, int cx, int dx );
 
 void main()
 {
@@ -36,10 +38,11 @@ void printString(char* c)
     int i = 0;
     char current;
 
+    /* iterate char by char until the end of the string */
     do
     {
 	current = *(c + i);
-	/* call interrupt 16 to print current */
+	/* interrupt 16 prints current character */
 	interrupt( 16, 14*256+current, 0, 0, 0 );
 	++i;
     }while( current != '\0' );
@@ -52,17 +55,20 @@ void readString(char* c)
     
     do
     {
+	/* interrupt 22 accepts a single keystroke and stores it in current */
 	current = interrupt( 22, 0, 0, 0, 0 );
+	/* print the inputted character with interrupt 16 */
 	interrupt( 16, 14*256+current, 0, 0, 0 );
 	*(c + i) = current;
 
-	/* if BACKSPACE is pressed */
+	/* if BACKSPACE is pressed, decrement unless at beginning of string */
 	if( current == 0x8 )
+	{
 	    if( i > 0 )
-	    {
-		i -= 2;
-	    }
-	++i;
+		--i;
+	}
+	else
+	    ++i;
     } while( current != 0xD ); /*continue until ENTER is pressed */
     *(c + (i - 1)) = '\0';
 }
@@ -70,13 +76,15 @@ void readString(char* c)
 void clearScreen(int bx, int cx)
 {
     int i;
-    for( i = 0; i < 24; ++i )
+    for( i = 0; i < MAX_ROWS; ++i )
     {
     	interrupt( 33,0,"\r\n\0",0,0 );
     }
 
+    /* reposition cursor in upperleft corner */
     interrupt( 16, 512, 0, 0, 0 );
 
+    /* use interrupt 16 to set the colors of the terminal to bx and cx */
     if( bx > 0 && cx > 0 )
 	interrupt( 16, 1536, 4096 * ( bx - 1 ) + 256 * ( cx - 1 ), 0, 6223 );
 
@@ -139,7 +147,6 @@ void readInt(int* number)
 	++i;
     }
     *number = sum;
-
 }
 
 int pow( int b, int e )
